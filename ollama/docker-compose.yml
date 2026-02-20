@@ -21,22 +21,17 @@ services:
       retries: 3
       start_period: 40s
 
-  open-webui:
-    image: ghcr.io/open-webui/open-webui:main
-    container_name: open-webui
+  ollama-model-manager:
+    image: aaronbolton78/ollamamodelmanager:latest
+    container_name: ollama-model-manager
     restart: unless-stopped
     ports:
-      - "13000:8080"
-    volumes:
-      - open_webui_data:/app/backend/data
+      - "13000:3000"
     environment:
-      - OLLAMA_BASE_URL=http://ollama:11434
-      - WEBUI_AUTH=false
+      - OLLAMA_ENDPOINTS=http://ollama:11434
     depends_on:
       - ollama
 
 volumes:
   ollama_data:
     name: ollama_data
-  open_webui_data:
-    name: open_webui_data
