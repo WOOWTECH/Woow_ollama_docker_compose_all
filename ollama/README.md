@@ -1,4 +1,4 @@
-# Ollama with NVIDIA GPU + Web UI
+# Ollama with NVIDIA GPU + Open WebUI
 
 [中文版](#中文說明) | [English](#english)
 
@@ -8,14 +8,20 @@
 
 ### Overview
 
-Deploy Ollama with NVIDIA GPU acceleration and a web-based management UI.
+Deploy Ollama with NVIDIA GPU acceleration and Open WebUI for chat and model management.
 
 ### Services
 
 | Service | Port | Description |
 |---------|------|-------------|
 | Ollama | 11434 | LLM API Server |
-| Ollama WebUI | 3000 | Web Management Interface |
+| Open WebUI | 3000 | Chat Interface + Model Management |
+
+### Features
+
+- **Chat Interface** - ChatGPT-style conversation with models
+- **Model Management** - Download, delete, and view model information
+- **NVIDIA GPU** - Hardware acceleration for fast inference
 
 ### Prerequisites
 
@@ -42,12 +48,13 @@ podman exec ollama nvidia-smi
 - **Web UI**: http://localhost:3000
 - **API**: http://localhost:11434
 
-### First Time Setup
+### Model Management via Web UI
 
 1. Open http://localhost:3000
-2. Create an admin account
-3. Go to Settings > Models
-4. Download a model (e.g., `llama3.2`)
+2. Click on your profile icon (top right)
+3. Go to **Admin Panel** > **Settings** > **Models**
+4. Download models by entering model name (e.g., `llama3.2`)
+5. View/delete existing models
 
 ### Pull Models via CLI
 
@@ -58,8 +65,11 @@ podman exec ollama ollama pull llama3.2
 # List models
 podman exec ollama ollama list
 
-# Run interactively
-podman exec -it ollama ollama run llama3.2
+# Delete a model
+podman exec ollama ollama rm llama3.2
+
+# Show model info
+podman exec ollama ollama show llama3.2
 ```
 
 ### Stop
@@ -74,14 +84,20 @@ podman-compose down
 
 ### 概述
 
-部署支援 NVIDIA GPU 的 Ollama，並附帶 Web 管理介面。
+部署支援 NVIDIA GPU 的 Ollama，搭配 Open WebUI 進行聊天和模型管理。
 
 ### 服務
 
 | 服務 | 端口 | 說明 |
 |------|------|------|
 | Ollama | 11434 | LLM API 服務 |
-| Ollama WebUI | 3000 | Web 管理介面 |
+| Open WebUI | 3000 | 聊天介面 + 模型管理 |
+
+### 功能
+
+- **聊天介面** - ChatGPT 風格的對話介面
+- **模型管理** - 下載、刪除、查看模型資訊
+- **NVIDIA GPU** - 硬體加速推理
 
 ### 前置需求
 
@@ -108,14 +124,15 @@ podman exec ollama nvidia-smi
 - **Web 介面**: http://localhost:3000
 - **API**: http://localhost:11434
 
-### 首次設定
+### 透過 Web UI 管理模型
 
 1. 打開 http://localhost:3000
-2. 建立管理員帳戶
-3. 進入 Settings > Models
-4. 下載模型（例如 `llama3.2`）
+2. 點擊右上角的個人頭像
+3. 進入 **Admin Panel** > **Settings** > **Models**
+4. 輸入模型名稱下載（例如 `llama3.2`）
+5. 查看/刪除現有模型
 
-### 透過 CLI 拉取模型
+### 透過 CLI 管理模型
 
 ```bash
 # 拉取模型
@@ -124,8 +141,11 @@ podman exec ollama ollama pull llama3.2
 # 列出模型
 podman exec ollama ollama list
 
-# 互動式運行
-podman exec -it ollama ollama run llama3.2
+# 刪除模型
+podman exec ollama ollama rm llama3.2
+
+# 顯示模型資訊
+podman exec ollama ollama show llama3.2
 ```
 
 ### 停止
