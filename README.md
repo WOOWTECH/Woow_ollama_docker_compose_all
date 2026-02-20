@@ -14,13 +14,13 @@ Self-contained Docker/Podman Compose projects for quick deployment.
 
 | Directory | Description | Ports |
 |-----------|-------------|-------|
-| [ollama/](./ollama/) | Ollama LLM with NVIDIA GPU | 11434 |
+| [ollama/](./ollama/) | Ollama LLM with NVIDIA GPU + Open WebUI | 11434, 13000 |
 | [emqx/](./emqx/) | EMQX MQTT Broker | 1883, 18083 |
 
 ### Quick Start
 
 ```bash
-# Start Ollama
+# Start Ollama + Open WebUI
 cd ollama && podman-compose up -d
 
 # Start EMQX
@@ -44,13 +44,13 @@ cd emqx && podman-compose up -d
 
 | 目錄 | 說明 | 端口 |
 |------|------|------|
-| [ollama/](./ollama/) | Ollama LLM (支援 NVIDIA GPU) | 11434 |
+| [ollama/](./ollama/) | Ollama LLM (支援 NVIDIA GPU) + Open WebUI | 11434, 13000 |
 | [emqx/](./emqx/) | EMQX MQTT 訊息代理 | 1883, 18083 |
 
 ### 快速開始
 
 ```bash
-# 啟動 Ollama
+# 啟動 Ollama + Open WebUI
 cd ollama && podman-compose up -d
 
 # 啟動 EMQX
