@@ -14,6 +14,7 @@ services:
     environment:
       - NVIDIA_VISIBLE_DEVICES=all
       - NVIDIA_DRIVER_CAPABILITIES=compute,utility
+      - OLLAMA_ORIGINS=*
     healthcheck:
       test: ["CMD-SHELL", "ollama list || exit 1"]
       interval: 30s
@@ -21,6 +22,7 @@ services:
       retries: 3
       start_period: 40s
 
+  # Model Manager - 模型管理 (下載/刪除/更新)
   ollama-model-manager:
     image: aaronbolton78/ollamamodelmanager:latest
     container_name: ollama-model-manager
@@ -32,6 +34,33 @@ services:
     depends_on:
       - ollama
 
+  # Ollama GUI - 輕量聊天介面
+  ollama-gui:
+    image: localhost/ollama-gui:latest
+    container_name: ollama-gui
+    restart: unless-stopped
+    ports:
+      - "13001:80"
+    depends_on:
+      - ollama
+
+  # Open WebUI - 完整聊天介面 + 進階功能
+  open-webui:
+    image: ghcr.io/open-webui/open-webui:main
+    container_name: open-webui
+    restart: unless-stopped
+    ports:
+      - "13002:8080"
+    volumes:
+      - open_webui_data:/app/backend/data
+    environment:
+      - OLLAMA_BASE_URL=http://ollama:11434
+      - WEBUI_AUTH=false
+    depends_on:
+      - ollama
+
 volumes:
   ollama_data:
     name: ollama_data
+  open_webui_data:
+    name: open_webui_data
