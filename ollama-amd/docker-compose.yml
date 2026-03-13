@@ -1,0 +1,49 @@
+version: "3.9"
+
+services:
+  ollama:
+    image: ollama/ollama:rocm
+    container_name: ollama-amd
+    restart: unless-stopped
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    devices:
+      - /dev/kfd:/dev/kfd
+      - /dev/dri:/dev/dri
+    environment:
+      - HSA_OVERRIDE_GFX_VERSION=11.5.1
+      - HIP_VISIBLE_DEVICES=0
+      - OLLAMA_HOST=0.0.0.0
+    group_add:
+      - video
+      - render
+    security_opt:
+      - seccomp=unconfined
+    healthcheck:
+      test: ["CMD-SHELL", "ollama list || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  open-webui:
+    image: ghcr.io/open-webui/open-webui:main
+    container_name: open-webui-amd
+    restart: unless-stopped
+    ports:
+      - "13000:8080"
+    volumes:
+      - open_webui_data:/app/backend/data
+    environment:
+      - OLLAMA_BASE_URL=http://ollama-amd:11434
+      - WEBUI_AUTH=false
+    depends_on:
+      - ollama
+
+volumes:
+  ollama_data:
+    name: ollama_amd_data
+  open_webui_data:
+    name: open_webui_amd_data

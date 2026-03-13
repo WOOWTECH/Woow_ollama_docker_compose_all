@@ -1,0 +1,64 @@
+##############################################################################
+# Alternative: Community-built Ollama image with native gfx1151 ROCm support
+#
+# Use this if the official ollama/ollama:rocm image does NOT properly
+# detect your Radeon 8060S GPU (falls back to CPU silently).
+#
+# This image is built from: https://github.com/rjmalagon/ollama-linux-amd-apu
+# It includes bleeding-edge ROCm support for Strix Halo (gfx1151).
+#
+# To use: podman-compose -f docker-compose.community.yml up -d
+##############################################################################
+
+version: "3.9"
+
+services:
+  ollama:
+    image: ghcr.io/rjmalagon/ollama-linux-amd-apu:optm-latest
+    container_name: ollama-amd
+    restart: unless-stopped
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    devices:
+      - /dev/kfd:/dev/kfd
+      - /dev/dri:/dev/dri
+    environment:
+      - HSA_OVERRIDE_GFX_VERSION=11.5.1
+      - HIP_VISIBLE_DEVICES=0
+      - OLLAMA_HOST=0.0.0.0
+      - OLLAMA_FLASH_ATTENTION=true
+      - OLLAMA_KV_CACHE_TYPE=q8_0
+    group_add:
+      - video
+      - render
+    security_opt:
+      - seccomp=unconfined
+    command: serve
+    healthcheck:
+      test: ["CMD-SHELL", "ollama list || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  open-webui:
+    image: ghcr.io/open-webui/open-webui:main
+    container_name: open-webui-amd
+    restart: unless-stopped
+    ports:
+      - "13000:8080"
+    volumes:
+      - open_webui_data:/app/backend/data
+    environment:
+      - OLLAMA_BASE_URL=http://ollama-amd:11434
+      - WEBUI_AUTH=false
+    depends_on:
+      - ollama
+
+volumes:
+  ollama_data:
+    name: ollama_amd_data
+  open_webui_data:
+    name: open_webui_amd_data
