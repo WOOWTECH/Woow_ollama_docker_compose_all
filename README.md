@@ -8,25 +8,29 @@
 
 ### Overview
 
-Production-ready Docker/Podman Compose deployment for **Ollama** (with NVIDIA GPU acceleration + Open WebUI) and **EMQX** (MQTT Broker). Each service is self-contained in its own directory with independent compose files.
+Production-ready Docker/Podman Compose deployment for **Ollama** with NVIDIA GPU acceleration and **Open WebUI** for chat and model management.
 
 ### Architecture
 
 ```
-┌──────────────────────────────────────────────────────────┐
-│                      Host System                          │
-│  ┌────────────────────────┐  ┌────────────────────────┐  │
-│  │   ollama/ project      │  │    emqx/ project       │  │
-│  │  ┌──────────────────┐  │  │  ┌──────────────────┐  │  │
-│  │  │  Ollama (GPU)    │  │  │  │  EMQX Broker     │  │  │
-│  │  │  :11434          │  │  │  │  :1883 (MQTT)    │  │  │
-│  │  └──────────────────┘  │  │  │  :18083 (Dashboard)│ │  │
-│  │  ┌──────────────────┐  │  │  └──────────────────┘  │  │
-│  │  │  Open WebUI      │  │  │                        │  │
-│  │  │  :13000          │  │  │                        │  │
-│  │  └──────────────────┘  │  │                        │  │
-│  └────────────────────────┘  └────────────────────────┘  │
-└──────────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────┐
+│                   Host System                     │
+│                                                   │
+│  ┌─────────────────────────────────────────────┐  │
+│  │  NVIDIA Driver + Container Toolkit (CDI)    │  │
+│  └─────────────────────────────────────────────┘  │
+│                        │                          │
+│  ┌─────────────────────────────────────────────┐  │
+│  │            Podman / Docker                  │  │
+│  │                                             │  │
+│  │  ┌───────────────────┐  ┌───────────────┐  │  │
+│  │  │  Ollama (GPU)     │  │  Open WebUI   │  │  │
+│  │  │  :11434           │◄─│  :13000       │  │  │
+│  │  │  ollama_data vol  │  │  webui_data   │  │  │
+│  │  └───────────────────┘  └───────────────┘  │  │
+│  │                                             │  │
+│  └─────────────────────────────────────────────┘  │
+└──────────────────────────────────────────────────┘
 ```
 
 ### Project Structure
@@ -35,21 +39,17 @@ Production-ready Docker/Podman Compose deployment for **Ollama** (with NVIDIA GP
 Woow_ollama_docker_compose_all/
 ├── README.md                          # This file (bilingual)
 ├── SKILL.md                           # AI deployment skill reference
-├── ollama/
-│   ├── docker-compose.yml             # Ollama + Open WebUI
-│   └── README.md                      # Ollama documentation
-└── emqx/
-    ├── docker-compose.yml             # EMQX MQTT Broker
-    └── README.md                      # EMQX documentation
+└── ollama/
+    ├── docker-compose.yml             # Ollama + Open WebUI
+    └── README.md                      # Ollama documentation
 ```
 
 ### Services
 
-| Service | Directory | Ports | Description |
-|---------|-----------|-------|-------------|
-| Ollama | `ollama/` | 11434 | LLM API Server with NVIDIA GPU |
-| Open WebUI | `ollama/` | 13000 | Chat + Model Management UI |
-| EMQX | `emqx/` | 1883, 8883, 8083, 8084, 18083 | MQTT Broker for IoT |
+| Service | Port | Description |
+|---------|------|-------------|
+| Ollama | 11434 | LLM API Server with NVIDIA GPU |
+| Open WebUI | 13000 | Chat + Model Management UI |
 
 ---
 
@@ -65,13 +65,13 @@ podman --version
 docker --version
 ```
 
-#### 2. NVIDIA Driver (for Ollama GPU)
+#### 2. NVIDIA Driver (for GPU acceleration)
 
 ```bash
 nvidia-smi
 ```
 
-#### 3. NVIDIA Container Toolkit (for Ollama GPU)
+#### 3. NVIDIA Container Toolkit
 
 ```bash
 # Check if installed
@@ -103,11 +103,12 @@ podman run --rm --device nvidia.com/gpu=all ubuntu nvidia-smi
 
 ---
 
-### Deploy Ollama + Open WebUI
+### Deploy
 
 ```bash
-# Navigate to ollama directory
-cd ollama
+# Clone repository
+git clone https://github.com/WOOWTECH/Woow_ollama_docker_compose_all.git
+cd Woow_ollama_docker_compose_all/ollama
 
 # Start services
 podman-compose up -d
@@ -118,42 +119,22 @@ podman ps
 
 # Check GPU
 podman exec ollama nvidia-smi
-
-# Access Web UI
-# Open: http://localhost:13000
 ```
 
-### Deploy EMQX
+### Access
+
+- **Web UI**: http://localhost:13000
+- **API**: http://localhost:11434
+
+### Stop
 
 ```bash
-# Navigate to emqx directory
-cd emqx
-
-# Start services
-podman-compose up -d
-# or: docker-compose up -d
-
-# Verify
-podman ps
-
-# Access Dashboard
-# Open: http://localhost:18083
-# Username: admin / Password: public
-```
-
-### Stop Services
-
-```bash
-# Stop Ollama
 cd ollama && podman-compose down
-
-# Stop EMQX
-cd emqx && podman-compose down
 ```
 
 ---
 
-### Ollama Model Management
+### Model Management
 
 #### Via Open WebUI (http://localhost:13000)
 
@@ -249,25 +230,29 @@ podman network inspect ollama_default
 
 ### 概述
 
-生產就緒的 Docker/Podman Compose 部署方案，包含 **Ollama**（支援 NVIDIA GPU 加速 + Open WebUI）和 **EMQX**（MQTT 訊息代理）。每個服務都是獨立的專案目錄，擁有獨立的 compose 檔案。
+生產就緒的 Docker/Podman Compose 部署方案，包含支援 NVIDIA GPU 加速的 **Ollama** 和用於聊天與模型管理的 **Open WebUI**。
 
 ### 架構
 
 ```
-┌──────────────────────────────────────────────────────────┐
-│                      主機系統                              │
-│  ┌────────────────────────┐  ┌────────────────────────┐  │
-│  │   ollama/ 專案          │  │    emqx/ 專案           │  │
-│  │  ┌──────────────────┐  │  │  ┌──────────────────┐  │  │
-│  │  │  Ollama (GPU)    │  │  │  │  EMQX 代理       │  │  │
-│  │  │  :11434          │  │  │  │  :1883 (MQTT)    │  │  │
-│  │  └──────────────────┘  │  │  │  :18083 (管理面板) │  │  │
-│  │  ┌──────────────────┐  │  │  └──────────────────┘  │  │
-│  │  │  Open WebUI      │  │  │                        │  │
-│  │  │  :13000          │  │  │                        │  │
-│  │  └──────────────────┘  │  │                        │  │
-│  └────────────────────────┘  └────────────────────────┘  │
-└──────────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────┐
+│                   主機系統                         │
+│                                                   │
+│  ┌─────────────────────────────────────────────┐  │
+│  │  NVIDIA 驅動 + Container Toolkit (CDI)      │  │
+│  └─────────────────────────────────────────────┘  │
+│                        │                          │
+│  ┌─────────────────────────────────────────────┐  │
+│  │            Podman / Docker                  │  │
+│  │                                             │  │
+│  │  ┌───────────────────┐  ┌───────────────┐  │  │
+│  │  │  Ollama (GPU)     │  │  Open WebUI   │  │  │
+│  │  │  :11434           │◄─│  :13000       │  │  │
+│  │  │  ollama_data 卷   │  │  webui_data   │  │  │
+│  │  └───────────────────┘  └───────────────┘  │  │
+│  │                                             │  │
+│  └─────────────────────────────────────────────┘  │
+└──────────────────────────────────────────────────┘
 ```
 
 ### 專案結構
@@ -276,21 +261,17 @@ podman network inspect ollama_default
 Woow_ollama_docker_compose_all/
 ├── README.md                          # 本文件（中英文）
 ├── SKILL.md                           # AI 部署技能參考
-├── ollama/
-│   ├── docker-compose.yml             # Ollama + Open WebUI
-│   └── README.md                      # Ollama 文檔
-└── emqx/
-    ├── docker-compose.yml             # EMQX MQTT 代理
-    └── README.md                      # EMQX 文檔
+└── ollama/
+    ├── docker-compose.yml             # Ollama + Open WebUI
+    └── README.md                      # Ollama 文檔
 ```
 
 ### 服務列表
 
-| 服務 | 目錄 | 端口 | 說明 |
-|------|------|------|------|
-| Ollama | `ollama/` | 11434 | LLM API 服務（NVIDIA GPU 加速）|
-| Open WebUI | `ollama/` | 13000 | 聊天 + 模型管理介面 |
-| EMQX | `emqx/` | 1883, 8883, 8083, 8084, 18083 | IoT MQTT 訊息代理 |
+| 服務 | 端口 | 說明 |
+|------|------|------|
+| Ollama | 11434 | LLM API 服務（NVIDIA GPU 加速）|
+| Open WebUI | 13000 | 聊天 + 模型管理介面 |
 
 ---
 
@@ -306,13 +287,13 @@ podman --version
 docker --version
 ```
 
-#### 2. NVIDIA 驅動（Ollama GPU 所需）
+#### 2. NVIDIA 驅動（GPU 加速所需）
 
 ```bash
 nvidia-smi
 ```
 
-#### 3. NVIDIA Container Toolkit（Ollama GPU 所需）
+#### 3. NVIDIA Container Toolkit
 
 ```bash
 # 檢查是否已安裝
@@ -344,11 +325,12 @@ podman run --rm --device nvidia.com/gpu=all ubuntu nvidia-smi
 
 ---
 
-### 部署 Ollama + Open WebUI
+### 部署
 
 ```bash
-# 進入 ollama 目錄
-cd ollama
+# 克隆倉庫
+git clone https://github.com/WOOWTECH/Woow_ollama_docker_compose_all.git
+cd Woow_ollama_docker_compose_all/ollama
 
 # 啟動服務
 podman-compose up -d
@@ -359,42 +341,22 @@ podman ps
 
 # 檢查 GPU
 podman exec ollama nvidia-smi
-
-# 訪問 Web 介面
-# 打開：http://localhost:13000
 ```
 
-### 部署 EMQX
+### 訪問
+
+- **Web 介面**: http://localhost:13000
+- **API**: http://localhost:11434
+
+### 停止
 
 ```bash
-# 進入 emqx 目錄
-cd emqx
-
-# 啟動服務
-podman-compose up -d
-# 或：docker-compose up -d
-
-# 驗證
-podman ps
-
-# 訪問管理面板
-# 打開：http://localhost:18083
-# 用戶名：admin / 密碼：public
-```
-
-### 停止服務
-
-```bash
-# 停止 Ollama
 cd ollama && podman-compose down
-
-# 停止 EMQX
-cd emqx && podman-compose down
 ```
 
 ---
 
-### Ollama 模型管理
+### 模型管理
 
 #### 透過 Open WebUI (http://localhost:13000)
 

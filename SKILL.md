@@ -1,8 +1,8 @@
-# Skill: Deploy Ollama + Open WebUI + EMQX
+# Skill: Deploy Ollama + Open WebUI
 
 ## Overview
 
-This skill enables AI assistants to quickly deploy Ollama (with NVIDIA GPU) + Open WebUI and EMQX MQTT Broker using Docker/Podman Compose.
+This skill enables AI assistants to quickly deploy Ollama (with NVIDIA GPU) + Open WebUI using Docker/Podman Compose.
 
 ## Repository
 
@@ -76,15 +76,6 @@ curl http://localhost:11434/api/tags
 podman exec ollama ollama pull qwen2.5:7b
 ```
 
-### Step 8: Deploy EMQX (optional)
-
-```bash
-cd ../emqx
-podman-compose up -d
-```
-
-- **EMQX Dashboard**: http://localhost:18083 (admin/public)
-
 ---
 
 ## Service Configuration Reference
@@ -111,24 +102,6 @@ services:
     environment:
       - OLLAMA_BASE_URL=http://ollama:11434
       - WEBUI_AUTH=false
-```
-
-### EMQX (emqx/docker-compose.yml)
-
-```yaml
-services:
-  emqx:
-    image: emqx/emqx:latest
-    container_name: emqx
-    ports:
-      - "1883:1883"    # MQTT TCP
-      - "8883:8883"    # MQTT SSL/TLS
-      - "8083:8083"    # MQTT WebSocket
-      - "8084:8084"    # MQTT WebSocket SSL
-      - "18083:18083"  # Dashboard
-    volumes:
-      - emqx_data:/opt/emqx/data
-      - emqx_log:/opt/emqx/log
 ```
 
 ---
