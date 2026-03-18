@@ -1,0 +1,19 @@
+---
+# PersistentVolumeClaim for Ollama model storage.
+# Uses k3s built-in local-path provisioner.
+# Models can be large (7B ~4GB, 13B ~8GB, 70B ~40GB),
+# so 50Gi gives headroom for several models.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: ollama-data
+  namespace: ollama
+  labels:
+    app: ollama
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: local-path
+  resources:
+    requests:
+      storage: 50Gi

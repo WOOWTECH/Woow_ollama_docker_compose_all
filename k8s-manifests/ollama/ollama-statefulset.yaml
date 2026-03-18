@@ -1,0 +1,122 @@
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: ollama
+  namespace: ollama
+  labels:
+    app: ollama
+spec:
+  serviceName: ollama
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ollama
+  template:
+    metadata:
+      labels:
+        app: ollama
+    spec:
+      # ---------------------------------------------------------------
+      # GPU support (optional).
+      # Uncomment the runtimeClassName below if the NVIDIA GPU Operator
+      # is installed and you want Ollama to use GPU acceleration.
+      # On k3s the typical runtime class is "nvidia".
+      # ---------------------------------------------------------------
+      # runtimeClassName: nvidia
+
+      containers:
+        - name: ollama
+          image: ollama/ollama:latest
+          ports:
+            - name: http
+              containerPort: 11434
+              protocol: TCP
+
+          # --- Resource management -----------------------------------
+          # CPU-only defaults are conservative. When a GPU is available,
+          # raise memory limits and add the nvidia.com/gpu resource.
+          resources:
+            requests:
+              cpu: "500m"
+              memory: "2Gi"
+            limits:
+              cpu: "4"
+              memory: "8Gi"
+              # Uncomment below to request a GPU:
+              # nvidia.com/gpu: "1"
+
+          # --- Environment -------------------------------------------
+          env:
+            # Bind to all interfaces so the Service can reach it
+            - name: OLLAMA_HOST
+              value: "0.0.0.0"
+            # Keep downloaded models inside the PVC
+            - name: OLLAMA_MODELS
+              value: "/root/.ollama/models"
+            # Number of parallel model slots (tune to available RAM)
+            - name: OLLAMA_NUM_PARALLEL
+              value: "2"
+            # Maximum loaded models (tune to available VRAM / RAM)
+            - name: OLLAMA_MAX_LOADED_MODELS
+              value: "1"
+
+          # --- Volume mounts -----------------------------------------
+          volumeMounts:
+            - name: ollama-data
+              mountPath: /root/.ollama
+
+          # --- Health probes -----------------------------------------
+          # Startup probe: give Ollama up to 120 s to initialise on
+          # first boot (it may need to download runtime files).
+          startupProbe:
+            httpGet:
+              path: /
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            failureThreshold: 12
+
+          # Liveness probe: restart if Ollama stops responding.
+          livenessProbe:
+            httpGet:
+              path: /
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 30
+            timeoutSeconds: 5
+            failureThreshold: 3
+
+          # Readiness probe: remove from Service endpoints when busy
+          # starting up or unhealthy.
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+            initialDelaySeconds: 15
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+            successThreshold: 1
+
+      # --- Volumes ---------------------------------------------------
+      volumes:
+        - name: ollama-data
+          persistentVolumeClaim:
+            claimName: ollama-data
+
+      # Prefer scheduling on nodes with GPUs (soft affinity).
+      # If no GPU node exists the pod still schedules on any node.
+      affinity:
+        nodeAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              preference:
+                matchExpressions:
+                  - key: nvidia.com/gpu.present
+                    operator: In
+                    values:
+                      - "true"
+
+      # Ensure clean shutdown so in-flight requests finish.
+      terminationGracePeriodSeconds: 60
